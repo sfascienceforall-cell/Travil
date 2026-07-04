@@ -1,0 +1,222 @@
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#fff;font-family:system-ui,-apple-system,sans-serif;}
+canvas{display:block;border-radius:12px;border:1.5px solid #e8e8e8;touch-action:none;}
+.fml{font-size:13px;padding:10px 16px;border-radius:20px;background:#f5f5f5;border:1.5px solid #d0d0d0;color:#2c2c2a;margin:6px 0;font-family:ui-monospace,monospace;line-height:1.8;}
+.row{display:flex;align-items:center;gap:10px;margin:6px 0;flex-wrap:wrap;}
+.pill{font-size:13px;font-weight:500;color:#2c2c2a;background:#f5f5f5;border:1.5px solid #d0d0d0;border-radius:20px;padding:6px 14px;white-space:nowrap;}
+.btn{padding:8px 16px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid #d0d0d0;background:#fff;color:#2c2c2a;}
+.btn.on{border-color:#185fa5;background:#e6f1fb;color:#185fa5;}
+.val{min-width:64px;text-align:center;font-size:13px;font-weight:500;color:#2c2c2a;background:#f5f5f5;border:1.5px solid #d0d0d0;border-radius:20px;padding:5px 10px;}
+.info{font-size:12px;padding:8px 14px;border-radius:20px;background:#f5f5f5;border:1.5px solid #d0d0d0;color:#555;margin:6px 0;font-family:ui-monospace,monospace;line-height:1.8;}
+input[type=range]{flex:1;min-width:110px;}
+</style>
+
+<canvas id="cv" style="width:100%;height:56vh;min-height:370px;"></canvas>
+
+<div class="fml" id="fml"></div>
+
+<div class="row">
+  <button class="btn on" id="m0" onclick="setMode(0)">W = F·d</button>
+  <button class="btn" id="m1" onclick="setMode(1)">angle θ (F̄·d̄)</button>
+  <button class="btn" id="m2" onclick="setMode(2)">chemin ∫F̄·ds̄</button>
+  <button class="btn on" id="bP" onclick="paused=!paused;this.textContent=paused?'Lecture':'Pause';this.className=paused?'btn':'btn on';">Pause</button>
+</div>
+<div class="row" id="rowF">
+  <span class="pill" style="border-color:#9FE1CB;color:#1D9E75;">F force</span>
+  <input type="range" id="F" min="2" max="12" value="6" step="0.5" style="accent-color:#1D9E75;max-width:210px;">
+  <span class="val" id="Fv" style="border-color:#9FE1CB;color:#1D9E75;">6 N</span>
+  <span class="pill" id="thl" style="border-color:#f5c88f;color:#BA7517;">θ angle</span>
+  <input type="range" id="th" min="0" max="150" value="40" step="5" style="accent-color:#BA7517;max-width:210px;">
+  <span class="val" id="thv" style="border-color:#f5c88f;color:#BA7517;">40°</span>
+</div>
+<div class="row" id="rowP" style="display:none;">
+  <span class="pill" style="border-color:#b5d4f4;color:#185fa5;">vitesse</span>
+  <input type="range" id="sp" min="0.25" max="2.5" value="1" step="0.25" style="accent-color:#378ADD;max-width:190px;">
+  <span class="val" id="spv" style="border-color:#b5d4f4;color:#185fa5;">1.0×</span>
+  <span class="pill" style="border-color:#c9b8ea;color:#6a5aca;">découpage N</span>
+  <input type="range" id="N" min="3" max="80" value="8" step="1" style="accent-color:#7F77DD;max-width:190px;">
+  <span class="val" id="Nv" style="border-color:#c9b8ea;color:#6a5aca;">8</span>
+</div>
+
+<div class="info" id="info"></div>
+
+<script>
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+const RED='#E24B4A',DRED='#a32d2d',BLUE='#378ADD',BLUE_D='#185fa5',GREEN='#1D9E75',GREEN_D='#0F6E56',ORANGE='#BA7517',VIO='#7F77DD',GREY='#9aa0a6',AX='#c8ccd0';
+let W=0,H=0,dpr=1,paused=false,mode=0;
+let F=6,thDeg=40,speed=1,Ndec=8,s=0,holdT=0;
+const Dm=4;
+
+function setMode(m){mode=m;
+  for(let i=0;i<3;i++)document.getElementById('m'+i).className=(i===m?'btn on':'btn');
+  document.getElementById('thl').style.opacity=(m===1)?'1':'.35';
+  document.getElementById('th').disabled=(m!==1);
+  document.getElementById('rowP').style.display=(m===2)?'flex':'none';
+  s=0;updateFml();
+}
+function updateFml(){document.getElementById('fml').innerHTML=
+  mode===0?'<b style="color:#0F6E56">W = F · d</b> — la force est dans le sens du déplacement.'
+ :mode===1?'<b style="color:#0F6E56">W = F·d·cos θ = F̄ · d̄</b> — <b style="color:#1D9E75">cosθ>0 ⇒ W>0 (moteur)</b> ; <b style="color:#E24B4A">cosθ<0 ⇒ W<0 (résistant)</b> ; θ=90° ⇒ W=0.'
+ :'<b style="color:#0F6E56">W = Σ F̄·ds̄ → ∫ F̄·ds̄</b> — la force varie le long du chemin. On découpe en N morceaux ; plus N est grand, plus la somme s\'approche de l\'intégrale exacte.';
+}
+function bindv(id,fmt,f){const s2=document.getElementById(id),o=document.getElementById(id+'v');
+  s2.addEventListener('input',()=>{const v=+s2.value;f(v);o.textContent=fmt(v);});}
+bindv('F',v=>v+' N',v=>F=v);bindv('th',v=>v+'°',v=>thDeg=v);
+bindv('sp',v=>v.toFixed(2)+'×',v=>speed=v);bindv('N',v=>v,v=>Ndec=v);
+
+function syncSize(){const r=cv.getBoundingClientRect();dpr=window.devicePixelRatio||1;
+  const nW=Math.round(r.width)||700,nH=Math.round(r.height)||380;
+  if(nW!==W||nH!==H){W=nW;H=nH;cv.width=W*dpr;cv.height=H*dpr;}ctx.setTransform(dpr,0,0,dpr,0,0);}
+
+function arrow(x,y,vx,vy,col,w,dash){
+  const len=Math.hypot(vx,vy);if(len<2)return;
+  const ex=x+vx,ey=y+vy;
+  ctx.strokeStyle=col;ctx.lineWidth=w||2.5;ctx.lineCap='round';
+  if(dash)ctx.setLineDash(dash);
+  ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(ex,ey);ctx.stroke();ctx.setLineDash([]);
+  const hs=(w||2.5)*3.0,ang=Math.atan2(vy,vx);
+  ctx.fillStyle=col;ctx.save();ctx.translate(ex,ey);ctx.rotate(ang);
+  ctx.beginPath();ctx.moveTo(hs,0);ctx.lineTo(-hs*0.7,-hs*0.55);ctx.lineTo(-hs*0.7,hs*0.55);ctx.closePath();ctx.fill();ctx.restore();
+}
+function lbl(txt,x,y,col,al){ctx.fillStyle=col;ctx.font='700 13px system-ui';ctx.textAlign=al||'center';ctx.fillText(txt,x,y);}
+
+const px0=()=>W*0.13, px1=()=>W*0.80;
+function pathPt(u){const x=px0()+(px1()-px0())*u;const y=H*0.48-Math.sin(u*Math.PI*2.3)*H*0.14*(0.4+0.6*u);return{x,y};}
+function Fx(px){const xn=Math.max(0,Math.min(1,(px-px0())/(px1()-px0())));return F*(0.4+1.2*xn);}
+
+function draw(){
+  syncSize();ctx.clearRect(0,0,W,H);ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+
+  if(mode<2){
+    const groundY=H*0.70,x0=W*0.20,D=W*0.52,size=38;
+    const bx=x0+s*D, byC=groundY-size/2, topB=groundY-size;
+    // sol
+    ctx.strokeStyle=AX;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(20,groundY);ctx.lineTo(W-20,groundY);ctx.stroke();
+    ctx.lineWidth=1;for(let hx=24;hx<W-20;hx+=16){ctx.beginPath();ctx.moveTo(hx,groundY);ctx.lineTo(hx-8,groundY+9);ctx.stroke();}
+    // déplacement d (sous le sol)
+    arrow(x0,groundY+28,s*D,0,BLUE,2.4);
+    lbl('d̄',x0+s*D+12,groundY+33,BLUE);
+    lbl('d = '+(s*Dm).toFixed(2)+' m',x0+s*D/2,groundY+46,BLUE_D);ctx.font='600 11px ui-monospace,monospace';
+
+    const th=(mode===1?thDeg:0)*Math.PI/180, fpx=F*9;
+    const fvx=Math.cos(th)*fpx, fvy=-Math.sin(th)*fpx;
+    const cpos=Math.cos(th)>=0;
+    let Wj;
+    if(mode===0){
+      // force horizontale depuis le centre
+      arrow(bx,byC,fpx,0,GREEN,3.2);
+      Wj=F*(s*Dm);
+    }else{
+      // force appliquée AU-DESSUS du bloc (point A), projection propre
+      const A={x:bx,y:topB};
+      const tip={x:A.x+fvx,y:A.y+fvy};
+      // projection : pointillé vertical du bout vers l'axe de A
+      ctx.strokeStyle=GREY;ctx.setLineDash([4,4]);ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(tip.x,tip.y);ctx.lineTo(tip.x,A.y);ctx.stroke();ctx.setLineDash([]);
+      // composante horizontale (F cosθ)
+      arrow(A.x,A.y,fvx,0,cpos?GREEN_D:RED,2.6);
+      // F totale
+      arrow(A.x,A.y,fvx,fvy,GREEN,3.2);
+      // arc θ
+      if(thDeg>0){ctx.strokeStyle=ORANGE;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(A.x,A.y,22,0,-th,true);ctx.stroke();}
+      Wj=F*Math.cos(th)*(s*Dm);
+    }
+    // bloc (au-dessus des flèches)
+    ctx.fillStyle='#e6f1fb';ctx.strokeStyle=BLUE;ctx.lineWidth=2.5;
+    ctx.beginPath();ctx.roundRect(bx-size/2,topB,size,size,6);ctx.fill();ctx.stroke();
+
+    // libellés (après le bloc)
+    if(mode===0){lbl('F̄',bx+fpx+12,byC+5,GREEN,'left');}
+    else{
+      const A={x:bx,y:topB},tip={x:bx+fvx,y:topB+fvy};
+      lbl('F̄',tip.x+(fvx>=0?12:-12),tip.y-6,GREEN);
+      lbl('F·cosθ',A.x+fvx+(cpos?2:-2),A.y-8,cpos?GREEN_D:RED);
+      lbl('F·sinθ',tip.x+(fvx>=0?16:-16),(A.y+tip.y)/2,GREY,fvx>=0?'left':'right');
+      if(thDeg>0)lbl('θ',A.x+30*Math.cos(-th/2),A.y+30*Math.sin(-th/2)+4,ORANGE);
+      // moteur / résistant EN HAUT AU CENTRE
+      ctx.font='700 14px system-ui';ctx.textAlign='center';
+      if(Math.cos(th)>0.02){ctx.fillStyle=GREEN_D;ctx.fillText('W > 0  (moteur)',W/2,26);}
+      else if(Math.cos(th)<-0.02){ctx.fillStyle=RED;ctx.fillText('W < 0  (résistant)',W/2,26);}
+      else{ctx.fillStyle=GREY;ctx.fillText('W = 0  (force ⊥ déplacement)',W/2,26);}
+    }
+
+    gaugeSigned(Wj, F*Dm, mode===1);
+    document.getElementById('info').innerHTML=
+      'F = '+F+' N , d = '+(s*Dm).toFixed(2)+' m'+(mode===1?' , θ = '+thDeg+'°':'')+
+      ' &nbsp;|&nbsp; <b style="color:'+(Wj<0?RED:GREEN_D)+'">W = '+Wj.toFixed(2)+' J</b>'+
+      (mode===1?(Math.cos(th)>=0?' (moteur)':' (résistant)'):'');
+    if(!paused){s+=0.006*speed;if(s>1)s=0;}
+  } else {
+    // ===== mode 2 =====
+    const N=Ndec, x0=px0(),x1=px1();
+    ctx.strokeStyle='#e3e6e9';ctx.lineWidth=6;ctx.lineCap='round';
+    ctx.beginPath();for(let u=0;u<=1;u+=0.01){const p=pathPt(u);u===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);}ctx.stroke();
+    let exact=0;{let prev=pathPt(0);for(let i=1;i<=1200;i++){const p=pathPt(i/1200);const dxm=(p.x-prev.x)/(x1-x0)*Dm;exact+=Fx(prev.x)*dxm;prev=p;}}
+    const prog=Math.min(1,s);
+    const fullDone=Math.min(N,Math.floor(prog*N+1e-9));
+    const fracCur=Math.min(1,prog*N-fullDone);
+    let Wsum=0;
+    for(let i=0;i<N;i++){
+      const pa=pathPt(i/N),pb=pathPt((i+1)/N);
+      const dxm=(pb.x-pa.x)/(x1-x0)*Dm, dW=Fx(pa.x)*dxm;
+      ctx.fillStyle=i<fullDone?GREEN:'#c3c7cb';ctx.beginPath();ctx.arc(pa.x,pa.y,3,0,7);ctx.fill();
+      if(i<fullDone){
+        ctx.strokeStyle='rgba(29,158,117,0.65)';ctx.lineWidth=6;
+        ctx.beginPath();ctx.moveTo(pa.x,pa.y);ctx.lineTo(pb.x,pb.y);ctx.stroke();Wsum+=dW;
+      } else if(i===fullDone && fracCur>0){
+        const md=pathPt((i+fracCur)/N);
+        ctx.strokeStyle='rgba(29,158,117,0.65)';ctx.lineWidth=6;
+        ctx.beginPath();ctx.moveTo(pa.x,pa.y);ctx.lineTo(md.x,md.y);ctx.stroke();Wsum+=dW*fracCur;
+      }
+    }
+    const pend=pathPt(1);ctx.fillStyle=fullDone>=N?GREEN:'#c3c7cb';ctx.beginPath();ctx.arc(pend.x,pend.y,3,0,7);ctx.fill();
+    const p=pathPt(prog),pn=pathPt(Math.min(1,prog+0.02));
+    const tx=pn.x-p.x,ty=pn.y-p.y,tl=Math.hypot(tx,ty)||1;
+    const fl=Math.min(Fx(p.x)*7,84);
+    arrow(p.x,p.y,fl,0,GREEN,3);
+    arrow(p.x,p.y,tx/tl*36,ty/tl*36,BLUE,2.4);
+    lbl('F̄(x)',p.x+fl+16,p.y+4,GREEN,'left');
+    lbl('ds̄',p.x+tx/tl*36+ (tx>=0?10:-10), p.y+ty/tl*36+ (ty>=0?12:-4), BLUE);
+    ctx.fillStyle='#fff';ctx.strokeStyle=BLUE;ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(p.x,p.y,7,0,7);ctx.fill();ctx.stroke();
+
+    gaugeRiemann(Wsum,exact);
+    const atEnd=(prog>=0.999);
+    document.getElementById('info').innerHTML=
+      'N = '+N+' morceaux &nbsp;|&nbsp; <b style="color:'+GREEN_D+'">somme = '+Wsum.toFixed(2)+' J</b> &nbsp;|&nbsp; '+
+      '<b style="color:'+VIO+'">∫ exacte ≈ '+exact.toFixed(2)+' J</b> &nbsp;|&nbsp; '+
+      (atEnd?('écart = '+(exact-Wsum).toFixed(2)+' J (partie non remplie) → tend vers 0 quand N ↑'):'la jauge se remplit morceau par morceau');
+    if(!paused){
+      if(s>=1){holdT++;if(holdT>60){s=0;holdT=0;}}
+      else{s+=0.0045*speed;if(s>1)s=1;}
+    }
+  }
+  requestAnimationFrame(draw);
+}
+
+function gaugeSigned(Wj,Wmax,signed){
+  const gx=W*0.13,gw=W*0.74,gy=H*0.93,gh=15;
+  ctx.fillStyle='#f2f2f2';ctx.strokeStyle='#dcdcdc';ctx.lineWidth=1;
+  ctx.beginPath();ctx.roundRect(gx,gy-gh/2,gw,gh,7);ctx.fill();ctx.stroke();
+  if(signed){
+    const midx=gx+gw/2, frac=Math.max(-1,Math.min(1,Wj/(Wmax||1))), w=frac*gw/2;
+    ctx.fillStyle=Wj>=0?GREEN:RED;ctx.beginPath();ctx.roundRect(Math.min(midx,midx+w),gy-gh/2,Math.abs(w),gh,4);ctx.fill();
+    ctx.strokeStyle=GREY;ctx.beginPath();ctx.moveTo(midx,gy-gh/2-4);ctx.lineTo(midx,gy+gh/2+4);ctx.stroke();
+    ctx.fillStyle=GREY;ctx.font='600 10px system-ui';ctx.textAlign='center';
+    ctx.fillText('− résistant',gx+gw*0.25,gy+gh/2+15);ctx.fillText('+ moteur',gx+gw*0.75,gy+gh/2+15);
+  }else{const frac=Math.max(0,Math.min(1,Wj/(Wmax||1)));ctx.fillStyle=GREEN;ctx.beginPath();ctx.roundRect(gx,gy-gh/2,frac*gw,gh,7);ctx.fill();}
+  ctx.fillStyle=Wj<0?RED:GREEN_D;ctx.font='700 12px system-ui';ctx.textAlign='left';ctx.fillText('W = '+Wj.toFixed(2)+' J',gx,gy-gh/2-7);
+}
+function gaugeRiemann(Wsum,exact){
+  const gx=W*0.13,gw=W*0.74,gy=H*0.93,gh=15, mx=Math.max(exact,1e-6);
+  ctx.fillStyle='#f2f2f2';ctx.strokeStyle='#dcdcdc';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(gx,gy-gh/2,gw,gh,7);ctx.fill();ctx.stroke();
+  // repère intégrale exacte = jauge pleine (bord droit)
+  const frac=Math.max(0,Math.min(1,Wsum/mx));
+  ctx.fillStyle=GREEN;ctx.beginPath();ctx.roundRect(gx,gy-gh/2,frac*gw,gh,7);ctx.fill();
+  // trait violet à droite (= ∫ exacte)
+  ctx.strokeStyle=VIO;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(gx+gw,gy-gh/2-5);ctx.lineTo(gx+gw,gy+gh/2+5);ctx.stroke();
+  ctx.fillStyle=VIO;ctx.font='600 10px system-ui';ctx.textAlign='right';ctx.fillText('∫ exacte (jauge pleine)',gx+gw,gy+gh/2+15);
+  ctx.fillStyle=GREEN_D;ctx.font='700 12px system-ui';ctx.textAlign='left';ctx.fillText('somme = '+Wsum.toFixed(2)+' J',gx,gy-gh/2-7);
+}
+updateFml();draw();
+</script>
