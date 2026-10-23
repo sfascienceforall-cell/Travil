@@ -1,3 +1,13 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Travail d'une force · SFA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;500;600;700&family=STIX+Two+Text:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@500&display=swap">
+</head>
+<body>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:#fff;font-family:system-ui,-apple-system,sans-serif;}
@@ -11,6 +21,81 @@ canvas{display:block;border-radius:12px;border:1.5px solid #e8e8e8;touch-action:
 .info{font-size:12px;padding:8px 14px;border-radius:20px;background:#f5f5f5;border:1.5px solid #d0d0d0;color:#555;margin:6px 0;font-family:ui-monospace,monospace;line-height:1.8;}
 input[type=range]{flex:1;min-width:110px;}
 </style>
+<style id="sfa-kit">
+/* Kit SFA (clair) — plan blanc sur fond gris-bleu froid, encre bleu nuit, or en accent unique, réglages en règle graduée. */
+:root{--bg:#f3f5f8;--paper:#ffffff;--ink:#0c1f2e;--muted:#5b6b7b;--faint:#8a98a6;--rule:#dfe4ea;--rule2:#c9d1da;
+  --gold:#d9973f;--gold-ink:#9a6420;--press:#e9edf2;
+  --f-ui:"Mulish",system-ui,-apple-system,"Segoe UI",sans-serif;--f-math:"STIX Two Text","Cambria Math",serif;
+  --f-num:"JetBrains Mono",ui-monospace,monospace;color-scheme:light}
+html{background:var(--bg)}
+body{background:var(--bg)!important;color:var(--ink);font-family:var(--f-ui)!important;font-size:15px;line-height:1.5;
+  max-width:1180px;margin:0 auto!important;padding:20px 16px 32px!important}
+.sfa-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:6px 24px;
+  border-bottom:1px solid var(--rule);padding-bottom:10px;margin-bottom:16px}
+.sfa-head h1{font:700 1.5rem/1.2 var(--f-ui);margin:0;letter-spacing:-.005em;text-wrap:balance}
+.sfa-head h1 small{display:block;font:400 .88rem var(--f-ui);color:var(--muted);margin-top:3px}
+.sfa-head .sfa-tag{font:600 .8rem var(--f-ui);color:var(--muted)}
+.sfa-head .sfa-tag b{color:var(--gold-ink);font-weight:700}
+select{font:500 .86rem var(--f-ui)!important;border:1px solid var(--rule2)!important;border-radius:3px!important;background:var(--paper)!important;color:var(--ink)!important;padding:5px 8px!important}
+.sfa-stage{border:1px solid var(--rule)!important;border-radius:4px!important;box-shadow:0 1px 2px rgba(12,31,46,.05),0 8px 24px -16px rgba(12,31,46,.18)}
+.sfa-stage canvas{border:0!important;box-shadow:none!important}
+canvas{background:var(--paper);border:1px solid var(--rule)!important;border-radius:4px!important;box-shadow:0 1px 2px rgba(12,31,46,.05),0 8px 24px -16px rgba(12,31,46,.18)}
+.row{gap:12px!important;margin:10px 0!important}
+.pill,.lbl,.tag{background:none!important;border:0!important;border-radius:0!important;padding:0!important;
+  font:600 .86rem var(--f-ui)!important;color:var(--muted);min-width:0}
+.val{background:none!important;border:0!important;border-radius:0!important;padding:0!important;
+  font:500 .9rem var(--f-num)!important;font-variant-numeric:tabular-nums;text-align:right}
+.btn{background:transparent!important;border:1px solid var(--rule2)!important;border-radius:3px!important;color:var(--muted)!important;
+  font:600 .82rem var(--f-ui)!important;padding:6px 12px!important;transition:color .15s,background .15s}
+.btn:hover{color:var(--ink)!important;background:var(--press)!important}
+.btn.on{background:var(--ink)!important;border-color:var(--ink)!important;color:#fff!important;box-shadow:inset 0 -2px 0 var(--gold)}
+.fml{background:transparent!important;border:0!important;border-left:2px solid var(--gold)!important;border-radius:0!important;
+  font:400 1.08rem/1.7 var(--f-math)!important;color:var(--ink);padding:4px 0 4px 14px!important;margin:14px 0!important}
+.info{background:var(--paper)!important;border:1px solid var(--rule)!important;border-radius:3px!important;
+  font:500 .84rem/1.8 var(--f-num)!important;color:var(--muted)!important;padding:8px 14px!important}
+input[type=range]{-webkit-appearance:none;appearance:none;height:24px;background:linear-gradient(var(--rule2),var(--rule2)) center/100% 2px no-repeat;cursor:pointer;--pc:var(--gold)}
+input[type=range]::-webkit-slider-runnable-track{height:2px;background:transparent}
+input[type=range]::-moz-range-track{height:2px;background:transparent}
+input[type=range]::-moz-range-progress{height:2px;background:var(--pc)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:6px;height:20px;border-radius:1px;background:var(--pc);margin-top:-9px;border:0}
+input[type=range]::-moz-range-thumb{width:6px;height:20px;border-radius:1px;background:var(--pc);border:0}
+button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.sfa-foot{margin-top:22px;padding-top:10px;border-top:1px solid var(--rule);font-size:.78rem;color:var(--faint)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<script>
+/* Curseurs : la couleur du curseur reprend celle de son accent-color d'origine ; remplissage gauche en couleur. */
+addEventListener('DOMContentLoaded',()=>{
+/* Curseurs : couleur reprise de accent-color, remplissage à gauche. Resynchronisé en continu pour suivre
+   les curseurs créés ou déplacés par la simulation elle-même. */
+const fill=r=>{if(!r.dataset.sfa){r.dataset.sfa=1;const c=r.style.accentColor||getComputedStyle(r).accentColor;
+    if(c&&c!=='auto')r.style.setProperty('--pc',c);}
+  const v=r.value+'|'+r.min+'|'+r.max;if(r._sv===v)return;r._sv=v;
+  const p=(r.value-r.min)/(r.max-r.min)*100;
+  r.style.background=`linear-gradient(to right,var(--pc) ${p}%,var(--rule2) ${p}%) center/100% 2px no-repeat`;};
+const all=()=>document.querySelectorAll('input[type=range]').forEach(fill);
+all();document.addEventListener('input',e=>{if(e.target.matches&&e.target.matches('input[type=range]'))fill(e.target);});
+setInterval(all,150);
+/* Contrôles écrits en style en ligne (sans classe) : on leur donne les classes du kit. */
+const st=e=>(e.getAttribute('style')||'').replace(/\s/g,'').toLowerCase();
+const isPill=e=>/border-radius:(1[6-9]|20|99)px/.test(st(e));
+document.querySelectorAll('span').forEach(sp=>{if(sp.classList.length||!isPill(sp))return;
+  const n=sp.nextElementSibling,pv=sp.previousElementSibling;
+  if(n&&n.matches('input[type=range],select,button'))sp.classList.add('pill');
+  else if(pv&&pv.matches('input[type=range],select'))sp.classList.add('val');
+  else sp.classList.add('pill');});
+document.querySelectorAll('div').forEach(d=>{if(d.classList.length)return;const s=st(d);
+  if(/border-radius:(1[6-9]|20)px/.test(s)&&/monospace/.test(s))d.classList.add(d.id==='fml'?'fml':'info');
+  else if(d.querySelector(':scope>canvas')&&/border-radius:1[0-4]px/.test(s))d.classList.add('sfa-stage');});
+const tag=b=>{const s=st(b);b.classList.toggle('on',/#185fa5|rgb\(24,95,165\)/.test(s)&&!/#fff[;f]|#ffffff|rgb\(255,255,255\)/.test(s.match(/background:[^;]+/)?.[0]||''));};
+document.querySelectorAll('button:not(.btn)').forEach(b=>{b.classList.add('btn','sfa-n');tag(b);});
+new MutationObserver(ms=>ms.forEach(m=>{if(m.target.classList&&m.target.classList.contains('sfa-n'))tag(m.target);}))
+  .observe(document.body,{subtree:true,attributes:true,attributeFilter:['style']});
+});
+</script>
+<header class="sfa-head"><h1>Travail d'une force<small>Force, déplacement et angle</small></h1><span class="sfa-tag"><b>SFA</b> · Physique · Énergie</span></header>
+
+
 
 <canvas id="cv" style="width:100%;height:56vh;min-height:370px;"></canvas>
 
@@ -79,7 +164,10 @@ function arrow(x,y,vx,vy,col,w,dash){
   ctx.fillStyle=col;ctx.save();ctx.translate(ex,ey);ctx.rotate(ang);
   ctx.beginPath();ctx.moveTo(hs,0);ctx.lineTo(-hs*0.7,-hs*0.55);ctx.lineTo(-hs*0.7,hs*0.55);ctx.closePath();ctx.fill();ctx.restore();
 }
-function lbl(txt,x,y,col,al){ctx.fillStyle=col;ctx.font='700 13px system-ui';ctx.textAlign=al||'center';ctx.fillText(txt,x,y);}
+function lbl(txt,x,y,col,al){ctx.fillStyle=col;ctx.font='700 13px Mulish,system-ui,sans-serif';ctx.textAlign=al||'center';ctx.fillText(txt,x,y);}
+// idem, mais maintenu à l'intérieur du canvas
+function lblC(txt,x,y,col,al){ctx.font='700 13px Mulish,system-ui,sans-serif';const w=ctx.measureText(txt).width;al=al||'center';
+  const l=al==='left'?x:al==='right'?x-w:x-w/2,dx=Math.max(4-l,0)+Math.min(W-4-(l+w),0);lbl(txt,x+dx,y,col,al);}
 
 const px0=()=>W*0.13, px1=()=>W*0.80;
 function pathPt(u){const x=px0()+(px1()-px0())*u;const y=H*0.48-Math.sin(u*Math.PI*2.3)*H*0.14*(0.4+0.6*u);return{x,y};}
@@ -97,9 +185,9 @@ function draw(){
     // déplacement d (sous le sol)
     arrow(x0,groundY+28,s*D,0,BLUE,2.4);
     lbl('d̄',x0+s*D+12,groundY+33,BLUE);
-    lbl('d = '+(s*Dm).toFixed(2)+' m',x0+s*D/2,groundY+46,BLUE_D);ctx.font='600 11px ui-monospace,monospace';
+    lbl('d = '+(s*Dm).toFixed(2)+' m',x0+s*D/2,groundY+46,BLUE_D);ctx.font='600 11px JetBrains Mono,ui-monospace,monospace';
 
-    const th=(mode===1?thDeg:0)*Math.PI/180, fpx=F*9;
+    const th=(mode===1?thDeg:0)*Math.PI/180, fpx=F*Math.min(9,(W*0.26-24)/12);
     const fvx=Math.cos(th)*fpx, fvy=-Math.sin(th)*fpx;
     const cpos=Math.cos(th)>=0;
     let Wj;
@@ -130,12 +218,13 @@ function draw(){
     if(mode===0){lbl('F̄',bx+fpx+12,byC+5,GREEN,'left');}
     else{
       const A={x:bx,y:topB},tip={x:bx+fvx,y:topB+fvy};
-      lbl('F̄',tip.x+(fvx>=0?12:-12),tip.y-6,GREEN);
-      lbl('F·cosθ',A.x+fvx+(cpos?2:-2),A.y-8,cpos?GREEN_D:RED);
-      lbl('F·sinθ',tip.x+(fvx>=0?16:-16),(A.y+tip.y)/2,GREY,fvx>=0?'left':'right');
+      lblC('F̄',tip.x+(fvx>=0?12:-12),tip.y-6,GREEN);
+      // F·cosθ au bout de la composante, au niveau du trait (hors du F̄ et de l'arc θ) ; masqué si nulle
+      if(Math.abs(Math.cos(th))>0.02)lblC('F·cosθ',A.x+(cpos?1:-1)*(Math.max(Math.abs(fvx),size/2)+10),A.y+4,cpos?GREEN_D:RED,cpos?'left':'right');
+      if(Math.abs(fvy)>16)lblC('F·sinθ',tip.x+(fvx>=0?16:-16),(A.y+tip.y)/2,GREY,fvx>=0?'left':'right');
       if(thDeg>0)lbl('θ',A.x+30*Math.cos(-th/2),A.y+30*Math.sin(-th/2)+4,ORANGE);
       // moteur / résistant EN HAUT AU CENTRE
-      ctx.font='700 14px system-ui';ctx.textAlign='center';
+      ctx.font='700 14px Mulish,system-ui,sans-serif';ctx.textAlign='center';
       if(Math.cos(th)>0.02){ctx.fillStyle=GREEN_D;ctx.fillText('W > 0  (moteur)',W/2,26);}
       else if(Math.cos(th)<-0.02){ctx.fillStyle=RED;ctx.fillText('W < 0  (résistant)',W/2,26);}
       else{ctx.fillStyle=GREY;ctx.fillText('W = 0  (force ⊥ déplacement)',W/2,26);}
@@ -172,8 +261,8 @@ function draw(){
     }
     const pend=pathPt(1);ctx.fillStyle=fullDone>=N?GREEN:'#c3c7cb';ctx.beginPath();ctx.arc(pend.x,pend.y,3,0,7);ctx.fill();
     const p=pathPt(prog),pn=pathPt(Math.min(1,prog+0.02));
-    const tx=pn.x-p.x,ty=pn.y-p.y,tl=Math.hypot(tx,ty)||1;
-    const fl=Math.min(Fx(p.x)*7,84);
+    const pq=prog>0.98?pathPt(prog-0.02):p,pr=prog>0.98?p:pn;const tx=pr.x-pq.x,ty=pr.y-pq.y,tl=Math.hypot(tx,ty)||1;
+    const fl=Math.max(20,Math.min(Fx(p.x)*7,84,W-p.x-62));
     arrow(p.x,p.y,fl,0,GREEN,3);
     arrow(p.x,p.y,tx/tl*36,ty/tl*36,BLUE,2.4);
     lbl('F̄(x)',p.x+fl+16,p.y+4,GREEN,'left');
@@ -202,10 +291,10 @@ function gaugeSigned(Wj,Wmax,signed){
     const midx=gx+gw/2, frac=Math.max(-1,Math.min(1,Wj/(Wmax||1))), w=frac*gw/2;
     ctx.fillStyle=Wj>=0?GREEN:RED;ctx.beginPath();ctx.roundRect(Math.min(midx,midx+w),gy-gh/2,Math.abs(w),gh,4);ctx.fill();
     ctx.strokeStyle=GREY;ctx.beginPath();ctx.moveTo(midx,gy-gh/2-4);ctx.lineTo(midx,gy+gh/2+4);ctx.stroke();
-    ctx.fillStyle=GREY;ctx.font='600 10px system-ui';ctx.textAlign='center';
+    ctx.fillStyle=GREY;ctx.font='600 10px Mulish,system-ui,sans-serif';ctx.textAlign='center';
     ctx.fillText('− résistant',gx+gw*0.25,gy+gh/2+15);ctx.fillText('+ moteur',gx+gw*0.75,gy+gh/2+15);
   }else{const frac=Math.max(0,Math.min(1,Wj/(Wmax||1)));ctx.fillStyle=GREEN;ctx.beginPath();ctx.roundRect(gx,gy-gh/2,frac*gw,gh,7);ctx.fill();}
-  ctx.fillStyle=Wj<0?RED:GREEN_D;ctx.font='700 12px system-ui';ctx.textAlign='left';ctx.fillText('W = '+Wj.toFixed(2)+' J',gx,gy-gh/2-7);
+  ctx.fillStyle=Wj<0?RED:GREEN_D;ctx.font='700 12px Mulish,system-ui,sans-serif';ctx.textAlign='left';ctx.fillText('W = '+Wj.toFixed(2)+' J',gx,gy-gh/2-7);
 }
 function gaugeRiemann(Wsum,exact){
   const gx=W*0.13,gw=W*0.74,gy=H*0.93,gh=15, mx=Math.max(exact,1e-6);
@@ -215,8 +304,11 @@ function gaugeRiemann(Wsum,exact){
   ctx.fillStyle=GREEN;ctx.beginPath();ctx.roundRect(gx,gy-gh/2,frac*gw,gh,7);ctx.fill();
   // trait violet à droite (= ∫ exacte)
   ctx.strokeStyle=VIO;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(gx+gw,gy-gh/2-5);ctx.lineTo(gx+gw,gy+gh/2+5);ctx.stroke();
-  ctx.fillStyle=VIO;ctx.font='600 10px system-ui';ctx.textAlign='right';ctx.fillText('∫ exacte (jauge pleine)',gx+gw,gy+gh/2+15);
-  ctx.fillStyle=GREEN_D;ctx.font='700 12px system-ui';ctx.textAlign='left';ctx.fillText('somme = '+Wsum.toFixed(2)+' J',gx,gy-gh/2-7);
+  ctx.fillStyle=VIO;ctx.font='600 10px Mulish,system-ui,sans-serif';ctx.textAlign='right';ctx.fillText('∫ exacte (jauge pleine)',gx+gw,gy+gh/2+15);
+  ctx.fillStyle=GREEN_D;ctx.font='700 12px Mulish,system-ui,sans-serif';ctx.textAlign='left';ctx.fillText('somme = '+Wsum.toFixed(2)+' J',gx,gy-gh/2-7);
 }
 updateFml();draw();
 </script>
+<footer class="sfa-foot">Science For All · simulations interactives</footer>
+</body>
+</html>
